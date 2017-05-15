@@ -214,7 +214,7 @@ void parseargs(int argc, char **argv, ws2811_t *ws2811)
 		{"dma", required_argument, 0, 'd'},
 		{"gpio", required_argument, 0, 'g'},
 		{"invert", no_argument, 0, 'i'},
-		{"clear", no_argument, 0, 'i'},
+		{"clear", no_argument, 0, 'c'},
 		{"strip", required_argument, 0, 's'},
 		{"height", required_argument, 0, 'y'},
 		{"width", required_argument, 0, 'x'},
@@ -245,7 +245,7 @@ void parseargs(int argc, char **argv, ws2811_t *ws2811)
 				"-x (--width)   - matrix width (default 8)\n"
 				"-y (--height)  - matrix height (default 8)\n"
 				"-d (--dma)     - dma channel to use (default 5)\n"
-				"-g (--gpio)    - GPIO to use must be one of 10,18,40,52\n"
+				"-g (--gpio)    - GPIO to use must be one of 12,18,40,52\n"
 				"                 If omitted, default is 18\n"
 				"-i (--invert)  - invert pin output (pulse LOW)\n"
 				"-c (--clear)   - clear matrix on exit.\n"
@@ -267,7 +267,7 @@ void parseargs(int argc, char **argv, ws2811_t *ws2811)
 	Only 13 is available on the B+/2B, on pin 35
 */
 				switch (gpio) {
-					case 10:
+					case 12:
 					case 18:
 					case 40:
 					case 52:
@@ -374,7 +374,7 @@ void parseargs(int argc, char **argv, ws2811_t *ws2811)
 
 int main(int argc, char *argv[])
 {
-    int ret = 0;
+    ws2811_return_t ret;
 
     parseargs(argc, argv, &ledstring);
 
@@ -382,9 +382,10 @@ int main(int argc, char *argv[])
 
     setup_handlers();
 
-    if (ws2811_init(&ledstring))
+    if ((ret = ws2811_init(&ledstring)) != WS2811_SUCCESS)
     {
-        return -1;
+        fprintf(stderr, "ws2811_init failed: %s\n", ws2811_get_return_t_str(ret));
+        return ret;
     }
 
     while (running)
@@ -393,9 +394,9 @@ int main(int argc, char *argv[])
         matrix_bottom();
         matrix_render();
 
-        if (ws2811_render(&ledstring))
+        if ((ret = ws2811_render(&ledstring)) != WS2811_SUCCESS)
         {
-            ret = -1;
+            fprintf(stderr, "ws2811_render failed: %s\n", ws2811_get_return_t_str(ret));
             break;
         }
 
